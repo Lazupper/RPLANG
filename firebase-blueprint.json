@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user progress, XP, hearts, and streaks.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "xp": { "type": "integer", "description": "Total experience points" },
+        "hearts": { "type": "integer", "description": "Remaining lives (max 5)" },
+        "streak": { "type": "integer", "description": "Current daily streak" },
+        "lastActive": { "type": "string", "format": "date-time" },
+        "completedLessons": { "type": "array", "items": { "type": "string" } },
+        "level": { "type": "integer" }
+      },
+      "required": ["uid", "xp", "hearts", "streak", "level"]
+    },
+    "Module": {
+      "title": "Module",
+      "description": "A learning module containing a concept and multiple challenges.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "language": { "type": "string" },
+        "title": { "type": "string" },
+        "concept": { "type": "string", "description": "Markdown content explaining the concept." },
+        "difficulty": { "type": "integer" }
+      },
+      "required": ["language", "title", "concept"]
+    },
+    "LeaderboardEntry": {
+      "title": "Leaderboard Entry",
+      "description": "Public stats for the global leaderboard.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "xp": { "type": "integer" },
+        "level": { "type": "integer" }
+      },
+      "required": ["uid", "xp", "level"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Individual user profiles."
+    },
+    "/modules/{moduleId}": {
+      "schema": "Module",
+      "description": "Educational modules."
+    },
+    "/leaderboard/{userId}": {
+      "schema": "LeaderboardEntry",
+      "description": "Global leaderboard entries."
+    }
+  }
+}

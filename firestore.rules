@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (Auth UID)
+    // Fields:
+    //   - uid: string (required, immutable)
+    //   - displayName: string
+    //   - email: string
+    //   - photoURL: string
+    //   - xp: number (required)
+    //   - hearts: number (required, max 5)
+    //   - streak: number (required)
+    //   - lastActive: timestamp
+    //   - completedLessons: list (strings)
+    //
+    // Collection: lessons
+    // Document ID: lessonId
+    // Fields:
+    //   - language: string (javascript, python, etc.)
+    //   - title: string
+    //   - type: string (multiple_choice, etc.)
+    //   - question: string
+    //   - code: string
+    //   - options: list (strings)
+    //   - correctAnswer: string
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'xp', 'hearts', 'streak']) &&
+             data.uid is string &&
+             data.xp is number && data.xp >= 0 &&
+             data.hearts is number && data.hearts >= 0 && data.hearts <= 5 &&
+             data.streak is number && data.streak >= 0;
+    }
+
+    // Rules
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) &&
+                    request.resource.data.uid == resource.data.uid;
+    }
+
+    match /modules/{moduleId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Admin only
+    }
+
+    match /leaderboard/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isOwner(userId) && 
+                            request.resource.data.uid == userId &&
+                            request.resource.data.xp is number &&
+                            request.resource.data.level is number;
+      allow delete: if isOwner(userId);
+    }
+
+  }
+}
